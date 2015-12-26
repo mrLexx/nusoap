@@ -18,7 +18,6 @@
  * @author   Dietrich Ayala <dietrich@ganx4.com>
  * @author   Scott Nichol <snichol@users.sourceforge.net>
  * @version  $Id: class.soapclient.php,v 1.69 2010/04/26 20:15:08 snichol Exp $
-
  */
 class nusoap_client extends nusoap_base
 {
@@ -60,22 +59,18 @@ class nusoap_client extends nusoap_base
      */
     /**
      * @var      fault
-
      */
     public $fault;
     /**
      * @var      faultcode
-
      */
     public $faultcode;
     /**
      * @var      faultstring
-
      */
     public $faultstring;
     /**
      * @var      faultdetail
-
      */
     public $faultdetail;
 
@@ -91,7 +86,6 @@ class nusoap_client extends nusoap_base
      * @param integer $timeout set the connection timeout
      * @param integer $response_timeout set the response timeout
      * @param string $portName optional portName in WSDL document
-
      */
     public function __construct($endpoint, $wsdl = false, $proxyhost = false, $proxyport = false, $proxyusername = false, $proxypassword = false, $timeout = 0, $response_timeout = 30, $portName = '')
     {
@@ -151,7 +145,6 @@ class nusoap_client extends nusoap_base
      * @param string $style optional (rpc|document) the style to use when serializing parameters (WSDL can override)
      * @param string $use optional (encoded|literal) the use when serializing parameters (WSDL can override)
      * @return mixed    response from SOAP call, normally an associative array mirroring the structure of the XML response, false for certain fatal errors
-
      */
     public function call($operation, $params = array(), $namespace = 'http://tempuri.org', $soapAction = '', $headers = false, $rpcParams = null, $style = 'rpc', $use = 'encoded')
     {
@@ -310,7 +303,11 @@ class nusoap_client extends nusoap_base
                 $this->fault = true;
                 foreach ($return as $k => $v) {
                     $this->$k = $v;
-                    $this->debug("$k = $v<br>");
+                    if (is_string($v)) {
+                        $this->debug("$k = $v<br>");
+                    } else {
+                        $this->debug("serializing array element: ".json_encode(array("key" => $k, "value" => $v)));
+                    }
                 }
 
                 return $return;
@@ -394,7 +391,6 @@ class nusoap_client extends nusoap_base
      *
      * @param string $operation operation name
      * @return array array of data pertaining to the operation
-
      */
     public function getOperationData($operation)
     {
@@ -409,6 +405,7 @@ class nusoap_client extends nusoap_base
             return $this->operations[$operation];
         }
         $this->debug("No data for operation: $operation");
+
         return '';
     }
 
@@ -568,7 +565,6 @@ class nusoap_client extends nusoap_base
      *
      * @param mixed $option The cURL option (always integer?)
      * @param mixed $value The cURL option value
-
      */
     public function setCurlOption($option, $value)
     {
@@ -581,7 +577,6 @@ class nusoap_client extends nusoap_base
      * sets the SOAP endpoint, which can override WSDL
      *
      * @param string $endpoint The endpoint URL to use, or empty string or false to prevent override
-
      */
     public function setEndpoint($endpoint)
     {
@@ -593,7 +588,6 @@ class nusoap_client extends nusoap_base
      * set the SOAP headers
      *
      * @param mixed $headers String of XML with SOAP header content, or array of soapval objects for SOAP headers
-
      */
     public function setHeaders($headers)
     {
@@ -606,7 +600,6 @@ class nusoap_client extends nusoap_base
      * get the SOAP response headers (namespace resolution incomplete)
      *
      * @return string
-
      */
     public function getHeaders()
     {
@@ -617,7 +610,6 @@ class nusoap_client extends nusoap_base
      * get the SOAP response Header (parsed)
      *
      * @return mixed
-
      */
     public function getHeader()
     {
@@ -631,7 +623,6 @@ class nusoap_client extends nusoap_base
      * @param string $proxyport
      * @param string $proxyusername
      * @param string $proxypassword
-
      */
     public function setHTTPProxy($proxyhost, $proxyport, $proxyusername = '', $proxypassword = '')
     {
@@ -648,7 +639,6 @@ class nusoap_client extends nusoap_base
      * @param string $password
      * @param string $authtype (basic|digest|certificate|ntlm)
      * @param array $certRequest (keys must be cainfofile (optional), sslcertfile, sslkeyfile, passphrase, verifypeer (optional), verifyhost (optional): see corresponding options in cURL docs)
-
      */
     public function setCredentials($username, $password, $authtype = 'basic', $certRequest = array())
     {
@@ -664,7 +654,6 @@ class nusoap_client extends nusoap_base
      * use HTTP encoding
      *
      * @param string $enc HTTP encoding
-
      */
     public function setHTTPEncoding($enc = 'gzip, deflate')
     {
@@ -676,7 +665,6 @@ class nusoap_client extends nusoap_base
      * Set whether to try to use cURL connections if possible
      *
      * @param boolean $use Whether to try to use cURL
-
      */
     public function setUseCURL($use)
     {
@@ -703,7 +691,6 @@ class nusoap_client extends nusoap_base
      * This is no longer used.
      *
      * @return boolean
-
      * @deprecated
      */
     public function getDefaultRpcParams()
@@ -719,7 +706,6 @@ class nusoap_client extends nusoap_base
      * This is no longer used.
      *
      * @param boolean $rpcParams
-
      * @deprecated
      */
     public function setDefaultRpcParams($rpcParams)
@@ -732,7 +718,6 @@ class nusoap_client extends nusoap_base
      * allowing user to directly call methods from wsdl
      *
      * @return object soap_proxy object
-
      */
     public function getProxy()
     {
@@ -845,7 +830,6 @@ class nusoap_client extends nusoap_base
      * dynamically creates proxy class code
      *
      * @return string PHP/NuSOAP code for the proxy class
-
      */
     public function getProxyClassCode()
     {
@@ -912,7 +896,6 @@ class nusoap_client extends nusoap_base
      * @param string $name Cookie Name
      * @param string $value Cookie Value
      * @return boolean if cookie-set was successful returns true, else false
-
      */
     public function setCookie($name, $value)
     {
@@ -928,7 +911,6 @@ class nusoap_client extends nusoap_base
      * gets all Cookies
      *
      * @return array with all internal cookies
-
      */
     public function getCookies()
     {
