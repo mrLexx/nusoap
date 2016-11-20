@@ -12,6 +12,9 @@
             "homepage": "http://sourceforge.net/u/snichol/profile/"
         }
     ],
+    "require": {
+        "php": ">=5.3.3"
+    },
     "autoload": {
     	"classmap": ["lib/"]
     }
