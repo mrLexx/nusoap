@@ -1,21 +1,24 @@
 {
-    "name": "mrLexx/nusoap",
-    "description": "NuSOAP re-packaged for Packagist/Composer",
-    "license": "LGPLv2",
-    "authors": [
-        {
-            "name": "Dietrich Ayala",
-            "homepage": "http://sourceforge.net/u/dietricha/profile/"
-        },
-        {
-            "name": "Scott Nichol",
-            "homepage": "http://sourceforge.net/u/snichol/profile/"
-        }
-    ],
-    "require": {
-        "php": ">=5.3.3"
+  "name": "mrLexx/nusoap",
+  "description": "NuSOAP re-packaged for Packagist/Composer",
+  "license": "LGPLv2",
+  "authors": [
+    {
+      "name": "Dietrich Ayala",
+      "homepage": "http://sourceforge.net/u/dietricha/profile/"
     },
-    "autoload": {
-    	"classmap": ["lib/"]
+    {
+      "name": "Scott Nichol",
+      "homepage": "http://sourceforge.net/u/snichol/profile/"
     }
+  ],
+  "require": {
+    "php": "~5.6",
+    "ext-zlib": "*"
+  },
+  "autoload": {
+    "classmap": [
+      "lib/"
+    ]
+  }
 }
