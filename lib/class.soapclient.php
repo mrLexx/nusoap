@@ -75,6 +75,10 @@ class nusoap_client extends nusoap_base
     public $faultdetail;
     private string $operation;
     private $opData;
+    /**
+     * @var false|mixed
+     */
+    public $return;
 
     /**
      * constructor

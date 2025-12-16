@@ -44,6 +44,7 @@ class nusoap_parser extends nusoap_base
     public $multirefs = array();
     // toggle for auto-decoding element content
     public $decode_utf8 = true;
+    private XMLParser $parser;
 
     /**
      * constructor that actually does the parsing
