@@ -95,10 +95,9 @@ class nusoap_parser extends nusoap_base
             xml_parser_set_option($this->parser, XML_OPTION_CASE_FOLDING, 0);
             xml_parser_set_option($this->parser, XML_OPTION_TARGET_ENCODING, $this->xml_encoding);
             // Set the object for the parser.
-            xml_set_object($this->parser, $this);
             // Set the element handlers for the parser.
-            xml_set_element_handler($this->parser, 'start_element', 'end_element');
-            xml_set_character_data_handler($this->parser, 'character_data');
+            xml_set_element_handler($this->parser, 'start_element', [$this,'end_element']);
+            xml_set_character_data_handler($this->parser, [$this,'character_data']);
 
             // Parse the XML file.
             if (!xml_parse($this->parser, $xml, true)) {
@@ -136,7 +135,6 @@ class nusoap_parser extends nusoap_base
                     }
                 }
             }
-            xml_parser_free($this->parser);
         } else {
             $this->debug('xml was empty, didn\'t parse!');
             $this->setError('xml was empty, didn\'t parse!');
@@ -431,7 +429,7 @@ class nusoap_parser extends nusoap_base
             // raw UTF-8 that, e.g., might not map to iso-8859-1
             // TODO: this can also be handled with xml_parser_set_option($this->parser, XML_OPTION_TARGET_ENCODING, "ISO-8859-1");
             if ($this->decode_utf8) {
-                $data = utf8_decode($data);
+                $data = mb_convert_encoding($data, 'ISO-8859-1', 'UTF-8');
             }
         }
         $this->message[$pos]['cdata'] .= $data;
@@ -503,14 +501,14 @@ class nusoap_parser extends nusoap_base
             return (int)$value;
         }
         if ($type == 'float' || $type == 'double' || $type == 'decimal') {
-            return (double)$value;
+            return (float)$value;
         }
         if ($type == 'boolean') {
             if (strtolower($value) == 'false' || strtolower($value) == 'f') {
                 return false;
             }
 
-            return (boolean)$value;
+            return (bool)$value;
         }
         if ($type == 'base64' || $type == 'base64Binary') {
             $this->debug('Decode base64 value');

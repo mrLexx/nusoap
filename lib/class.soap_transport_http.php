@@ -249,7 +249,7 @@ class soap_transport_http extends nusoap_base
 
             // set response timeout
             $this->debug('set response timeout to '.$response_timeout);
-            socket_set_timeout($this->fp, $response_timeout);
+            stream_set_timeout($this->fp, $response_timeout);
 
             $this->debug('socket connected');
 
@@ -308,10 +308,9 @@ class soap_transport_http extends nusoap_base
                 $hostURL .= $this->path;
                 $this->setCurlOption(CURLOPT_URL, $hostURL);
                 // follow location headers (re-directs)
-                if (ini_get('safe_mode') || ini_get('open_basedir')) {
+                if (ini_get('open_basedir')) {
                     $this->debug('safe_mode or open_basedir set, so do not set CURLOPT_FOLLOWLOCATION');
                     $this->debug('safe_mode = ');
-                    $this->appendDebug($this->varDump(ini_get('safe_mode')));
                     $this->debug('open_basedir = ');
                     $this->appendDebug($this->varDump(ini_get('open_basedir')));
                 } else {
@@ -1041,7 +1040,6 @@ class soap_transport_http extends nusoap_base
                     }
                     $this->debug($err);
                     $this->setError($err);
-                    curl_close($this->ch);
 
                     return false;
                 } else {
@@ -1051,7 +1049,6 @@ class soap_transport_http extends nusoap_base
                 }
                 // close curl
                 $this->debug('No cURL error, closing cURL');
-                curl_close($this->ch);
 
                 // try removing skippable headers
                 $savedata = $data;
