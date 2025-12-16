@@ -643,7 +643,6 @@ class nusoap_base
                     $xml .= "<$name$xmlns$type_str$atts>$pXml</$name>";
                 }
                 break;
-                break;
             case (is_array($val) || $type):
                 // detect if struct or array
                 $valueType = $this->isArraySimpleOrStruct($val);
@@ -949,6 +948,7 @@ class nusoap_base
      * returns the time in ODBC canonical form with microseconds
      *
      * @return string The time in ODBC canonical form with microseconds
+     * @throws Exception
      */
     public function getmicrotime()
     {
@@ -960,8 +960,10 @@ class nusoap_base
             $sec = time();
             $usec = 0;
         }
-
-        return strftime('%Y-%m-%d %H:%M:%S', $sec).'.'.sprintf('%06d', $usec);
+        $timestampString = $sec . '.' . sprintf('%06d', $usec);
+        $date = DateTime::createFromFormat('U.u', $timestampString);
+        $date->setTimezone(new DateTimeZone(date_default_timezone_get()));
+        return $date->format('Y-m-d H:i:s.u');
     }
 
     /**

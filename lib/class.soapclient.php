@@ -73,6 +73,8 @@ class nusoap_client extends nusoap_base
      * @var      faultdetail
      */
     public $faultdetail;
+    private string $operation;
+    private $opData;
 
     /**
      * constructor
@@ -461,7 +463,7 @@ class nusoap_client extends nusoap_base
                     //$this->request = $http->outgoing_payload;
                     //$this->response = $http->incoming_payload;
                     //} else
-                    $this->responseData = $http->sendHTTPS($msg, $timeout, $response_timeout, $this->cookies);
+                    $this->responseData = $http->sendHTTPS($msg, $this->cookies, $timeout, $response_timeout);
                 } else {
                     $this->setError('no http/s in endpoint url');
                 }
@@ -733,6 +735,7 @@ class nusoap_client extends nusoap_base
         eval($evalStr);
         // instantiate proxy object
         eval("\$proxy = new nusoap_proxy_$r('');");
+
         // transfer current wsdl data to the proxy thereby avoiding parsing the wsdl twice
         $proxy->endpointType = 'wsdl';
         $proxy->wsdlFile = $this->wsdlFile;
