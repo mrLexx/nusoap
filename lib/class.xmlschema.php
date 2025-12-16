@@ -121,10 +121,10 @@ class nusoap_xmlschema extends nusoap_base
             // Set the object for the parser.
             // Set the element handlers for the parser.
             if ($type == "schema") {
-                xml_set_element_handler($this->parser, 'schemaStartElement', [$this, 'schemaEndElement']);
+                xml_set_element_handler($this->parser, [$this,'schemaStartElement'], [$this, 'schemaEndElement']);
                 xml_set_character_data_handler($this->parser, [$this, 'schemaCharacterData']);
             } elseif ($type == "xml") {
-                xml_set_element_handler($this->parser, 'xmlStartElement', [$this, 'xmlEndElement']);
+                xml_set_element_handler($this->parser, [$this,'xmlStartElement'], [$this, 'xmlEndElement']);
                 xml_set_character_data_handler($this->parser, [$this, 'xmlCharacterData']);
             }
 
