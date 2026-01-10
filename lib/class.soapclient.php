@@ -19,6 +19,7 @@
  * @author   Scott Nichol <snichol@users.sourceforge.net>
  * @version  $Id: class.soapclient.php,v 1.69 2010/04/26 20:15:08 snichol Exp $
  */
+#[AllowDynamicProperties]
 class nusoap_client extends nusoap_base
 {
 
