@@ -50,6 +50,7 @@ class soap_transport_http extends nusoap_base
      * @var false|resource
      */
     private $fp;
+    private ?int $errno = null;
 
     /**
      * constructor
@@ -68,8 +69,8 @@ class soap_transport_http extends nusoap_base
             $this->ch_options = $curl_options;
         }
         $this->use_curl = $use_curl;
-        preg_match('/\$Revisio'.'n: ([^ ]+)/', $this->revision, $rev);
-        $this->setHeader('User-Agent', $this->title.'/'.$this->version.' ('.$rev[1].')');
+        preg_match('/\$Revisio' . 'n: ([^ ]+)/', $this->revision, $rev);
+        $this->setHeader('User-Agent', $this->title . '/' . $this->version . ' (' . $rev[1] . ')');
     }
 
     /**
@@ -131,7 +132,7 @@ class soap_transport_http extends nusoap_base
 
         // add any GET params to path
         if (isset($u['query']) && $u['query'] != '') {
-            $this->path .= '?'.$u['query'];
+            $this->path .= '?' . $u['query'];
         }
 
         // set default port
@@ -150,7 +151,7 @@ class soap_transport_http extends nusoap_base
         if (!isset($u['port'])) {
             $this->setHeader('Host', $this->host);
         } else {
-            $this->setHeader('Host', $this->host.':'.$this->port);
+            $this->setHeader('Host', $this->host . ':' . $this->port);
         }
 
         if (isset($u['user']) && $u['user'] != '') {
@@ -166,11 +167,15 @@ class soap_transport_http extends nusoap_base
      */
     public function io_method()
     {
-        if ($this->use_curl || ($this->scheme == 'https') || ($this->scheme == 'http' && $this->authtype == 'ntlm') || ($this->scheme == 'http' && is_array($this->proxy) && $this->proxy['authtype'] == 'ntlm')) {
+        if ($this->use_curl || ($this->scheme == 'https') || ($this->scheme == 'http' && $this->authtype == 'ntlm') || ($this->scheme == 'http' && is_array(
+                    $this->proxy
+                ) && $this->proxy['authtype'] == 'ntlm')) {
             return 'curl';
         }
 
-        if (($this->scheme == 'http' || $this->scheme == 'ssl') && $this->authtype != 'ntlm' && (!is_array($this->proxy) || $this->proxy['authtype'] != 'ntlm')) {
+        if (($this->scheme == 'http' || $this->scheme == 'ssl') && $this->authtype != 'ntlm' && (!is_array(
+                    $this->proxy
+                ) || $this->proxy['authtype'] != 'ntlm')) {
             return 'socket';
         }
 
@@ -199,7 +204,9 @@ class soap_transport_http extends nusoap_base
         //                  }
         //              }
         //        }
-        $this->debug("connect connection_timeout $connection_timeout, response_timeout $response_timeout, scheme $this->scheme, host $this->host, port $this->port");
+        $this->debug(
+            "connect connection_timeout $connection_timeout, response_timeout $response_timeout, scheme $this->scheme, host $this->host, port $this->port"
+        );
         if ($this->io_method() == 'socket') {
             if (!is_array($this->proxy)) {
                 $host = $this->host;
@@ -222,9 +229,9 @@ class soap_transport_http extends nusoap_base
 
             // munge host if using OpenSSL
             if ($this->scheme == 'ssl') {
-                $host = 'ssl://'.$host;
+                $host = 'ssl://' . $host;
             }
-            $this->debug('calling fsockopen with host '.$host.' connection_timeout '.$connection_timeout);
+            $this->debug('calling fsockopen with host ' . $host . ' connection_timeout ' . $connection_timeout);
 
             // open socket
             if ($connection_timeout > 0) {
@@ -235,9 +242,9 @@ class soap_transport_http extends nusoap_base
 
             // test pointer
             if (!$this->fp) {
-                $msg = 'Couldn\'t open socket connection to server '.$this->url;
+                $msg = 'Couldn\'t open socket connection to server ' . $this->url;
                 if ($this->errno) {
-                    $msg .= ', Error ('.$this->errno.'): '.$this->error_str;
+                    $msg .= ', Error (' . $this->errno . '): ' . $this->error_str;
                 } else {
                     $msg .= ' prior to connect().  This is often a problem looking up the host name.';
                 }
@@ -248,7 +255,7 @@ class soap_transport_http extends nusoap_base
             }
 
             // set response timeout
-            $this->debug('set response timeout to '.$response_timeout);
+            $this->debug('set response timeout to ' . $response_timeout);
             stream_set_timeout($this->fp, $response_timeout);
 
             $this->debug('socket connected');
@@ -258,7 +265,9 @@ class soap_transport_http extends nusoap_base
             if ($this->io_method() == 'curl') {
                 if (!extension_loaded('curl')) {
 //            $this->setError('cURL Extension, or OpenSSL extension w/ PHP version >= 4.3 is required for HTTPS');
-                    $this->setError('The PHP cURL Extension is required for HTTPS or NLTM.  You will need to re-build or update your PHP to include cURL or change php.ini to load the PHP cURL extension.');
+                    $this->setError(
+                        'The PHP cURL Extension is required for HTTPS or NLTM.  You will need to re-build or update your PHP to include cURL or change php.ini to load the PHP cURL extension.'
+                    );
 
                     return false;
                 }
@@ -403,13 +412,16 @@ class soap_transport_http extends nusoap_base
                 if (is_array($this->proxy)) {
                     $this->debug('set cURL proxy options');
                     if ($this->proxy['port'] != '') {
-                        $this->setCurlOption(CURLOPT_PROXY, $this->proxy['host'].':'.$this->proxy['port']);
+                        $this->setCurlOption(CURLOPT_PROXY, $this->proxy['host'] . ':' . $this->proxy['port']);
                     } else {
                         $this->setCurlOption(CURLOPT_PROXY, $this->proxy['host']);
                     }
                     if ($this->proxy['username'] || $this->proxy['password']) {
                         $this->debug('set cURL proxy authentication options');
-                        $this->setCurlOption(CURLOPT_PROXYUSERPWD, $this->proxy['username'].':'.$this->proxy['password']);
+                        $this->setCurlOption(
+                            CURLOPT_PROXYUSERPWD,
+                            $this->proxy['username'] . ':' . $this->proxy['password']
+                        );
                         if ($this->proxy['authtype'] == 'basic') {
                             $this->setCurlOption($CURLOPT_PROXYAUTH, $CURLAUTH_BASIC);
                         }
@@ -422,8 +434,8 @@ class soap_transport_http extends nusoap_base
 
                 return true;
             } else {
-                $this->setError('Unknown scheme '.$this->scheme);
-                $this->debug('Unknown scheme '.$this->scheme);
+                $this->setError('Unknown scheme ' . $this->scheme);
+                $this->debug('Unknown scheme ' . $this->scheme);
 
                 return false;
             }
@@ -441,8 +453,7 @@ class soap_transport_http extends nusoap_base
      */
     public function send($data, $timeout = 0, $response_timeout = 30, $cookies = null)
     {
-
-        $this->debug('entered send() with data of length: '.strlen($data));
+        $this->debug('entered send() with data of length: ' . strlen($data));
 
         $this->tryagain = true;
         $tries = 0;
@@ -494,15 +505,23 @@ class soap_transport_http extends nusoap_base
      * @param array $digestRequest (keys must be nonce, nc, realm, qop)
      * @param array $certRequest (keys must be cainfofile (optional), sslcertfile, sslkeyfile, passphrase, certpassword (optional), verifypeer (optional), verifyhost (optional): see corresponding options in cURL docs)
      */
-    public function setCredentials($username, $password, $authtype = 'basic', $digestRequest = array(), $certRequest = array())
-    {
+    public function setCredentials(
+        $username,
+        $password,
+        $authtype = 'basic',
+        $digestRequest = array(),
+        $certRequest = array()
+    ) {
         $this->debug("setCredentials username=$username authtype=$authtype digestRequest=");
         $this->appendDebug($this->varDump($digestRequest));
         $this->debug("certRequest=");
         $this->appendDebug($this->varDump($certRequest));
         // cf. RFC 2617
         if ($authtype == 'basic') {
-            $this->setHeader('Authorization', 'Basic '.base64_encode(str_replace(':', '', $username).':'.$password));
+            $this->setHeader(
+                'Authorization',
+                'Basic ' . base64_encode(str_replace(':', '', $username) . ':' . $password)
+            );
         } elseif ($authtype == 'digest') {
             if (isset($digestRequest['nonce'])) {
                 $digestRequest['nc'] = isset($digestRequest['nc']) ? $digestRequest['nc']++ : 1;
@@ -510,13 +529,13 @@ class soap_transport_http extends nusoap_base
                 // calculate the Digest hashes (calculate code based on digest implementation found at: http://www.rassoc.com/gregr/weblog/stories/2002/07/09/webServicesSecurityHttpDigestAuthenticationWithoutActiveDirectory.html)
 
                 // A1 = unq(username-value) ":" unq(realm-value) ":" passwd
-                $A1 = $username.':'.(isset($digestRequest['realm']) ? $digestRequest['realm'] : '').':'.$password;
+                $A1 = $username . ':' . (isset($digestRequest['realm']) ? $digestRequest['realm'] : '') . ':' . $password;
 
                 // H(A1) = MD5(A1)
                 $HA1 = md5($A1);
 
                 // A2 = Method ":" digest-uri-value
-                $A2 = $this->request_method.':'.$this->digest_uri;
+                $A2 = $this->request_method . ':' . $this->digest_uri;
 
                 // H(A2)
                 $HA2 = md5($A2);
@@ -536,24 +555,27 @@ class soap_transport_http extends nusoap_base
                 $nonce = isset($digestRequest['nonce']) ? $digestRequest['nonce'] : '';
                 $cnonce = $nonce;
                 if ($digestRequest['qop'] != '') {
-                    $unhashedDigest = $HA1.':'.$nonce.':'.sprintf("%08d", $digestRequest['nc']).':'.$cnonce.':'.$digestRequest['qop'].':'.$HA2;
+                    $unhashedDigest = $HA1 . ':' . $nonce . ':' . sprintf(
+                            "%08d",
+                            $digestRequest['nc']
+                        ) . ':' . $cnonce . ':' . $digestRequest['qop'] . ':' . $HA2;
                 } else {
-                    $unhashedDigest = $HA1.':'.$nonce.':'.$HA2;
+                    $unhashedDigest = $HA1 . ':' . $nonce . ':' . $HA2;
                 }
 
                 $hashedDigest = md5($unhashedDigest);
 
                 $opaque = '';
                 if (isset($digestRequest['opaque'])) {
-                    $opaque = ', opaque="'.$digestRequest['opaque'].'"';
+                    $opaque = ', opaque="' . $digestRequest['opaque'] . '"';
                 }
 
                 $this->setHeader(
                     'Authorization',
-                    'Digest username="'.$username.'", realm="'.$digestRequest['realm'].'", nonce="'.$nonce.'", uri="'.$this->digest_uri.$opaque.'", cnonce="'.$cnonce.'", nc='.sprintf(
+                    'Digest username="' . $username . '", realm="' . $digestRequest['realm'] . '", nonce="' . $nonce . '", uri="' . $this->digest_uri . $opaque . '", cnonce="' . $cnonce . '", nc=' . sprintf(
                         "%08x",
                         $digestRequest['nc']
-                    ).', qop="'.$digestRequest['qop'].'", response="'.$hashedDigest.'"'
+                    ) . ', qop="' . $digestRequest['qop'] . '", response="' . $hashedDigest . '"'
                 );
             }
         } elseif ($authtype == 'certificate') {
@@ -576,7 +598,7 @@ class soap_transport_http extends nusoap_base
      */
     public function setSOAPAction($soapaction)
     {
-        $this->setHeader('SOAPAction', '"'.$soapaction.'"');
+        $this->setHeader('SOAPAction', '"' . $soapaction . '"');
     }
 
     /**
@@ -619,7 +641,10 @@ class soap_transport_http extends nusoap_base
                 'authtype' => $proxyauthtype,
             );
             if ($proxyusername != '' && $proxypassword != '' && $proxyauthtype = 'basic') {
-                $this->setHeader('Proxy-Authorization', ' Basic '.base64_encode($proxyusername.':'.$proxypassword));
+                $this->setHeader(
+                    'Proxy-Authorization',
+                    ' Basic ' . base64_encode($proxyusername . ':' . $proxypassword)
+                );
             }
         } else {
             $this->debug('remove proxy');
@@ -653,7 +678,6 @@ class soap_transport_http extends nusoap_base
             if ($prefix == $hd) {
                 return true;
             }
-
         }
 
         return false;
@@ -751,14 +775,14 @@ class soap_transport_http extends nusoap_base
 
         // loop thru headers, serializing
         foreach ($this->outgoing_headers as $k => $v) {
-            $hdr = $k.': '.$v;
+            $hdr = $k . ': ' . $v;
             $this->debug("HTTP header: $hdr");
             $this->outgoing_payload .= "$hdr\r\n";
         }
 
         // add any cookies
         if ($cookie_str != '') {
-            $hdr = 'Cookie: '.$cookie_str;
+            $hdr = 'Cookie: ' . $cookie_str;
             $this->debug("HTTP header: $hdr");
             $this->outgoing_payload .= "$hdr\r\n";
         }
@@ -794,7 +818,7 @@ class soap_transport_http extends nusoap_base
 
                 return false;
             }
-            $this->debug('wrote data to socket, length = '.strlen($this->outgoing_payload));
+            $this->debug('wrote data to socket, length = ' . strlen($this->outgoing_payload));
 
             return true;
         } else {
@@ -813,7 +837,7 @@ class soap_transport_http extends nusoap_base
                     }
                 }
                 if ($cookie_str != '') {
-                    $curl_headers[] = 'Cookie: '.$cookie_str;
+                    $curl_headers[] = 'Cookie: ' . $cookie_str;
                 }
                 $this->setCurlOption(CURLOPT_HTTPHEADER, $curl_headers);
                 $this->debug('set cURL HTTP headers');
@@ -850,12 +874,11 @@ class soap_transport_http extends nusoap_base
             // loop until headers have been retrieved
             $data = '';
             while (!isset($lb)) {
-
                 // We might EOF during header read.
                 if (feof($this->fp)) {
                     $this->incoming_payload = $data;
-                    $this->debug('found no headers before EOF after length '.strlen($data));
-                    $this->debug("received before EOF:\n".$data);
+                    $this->debug('found no headers before EOF after length ' . strlen($data));
+                    $this->debug("received before EOF:\n" . $data);
                     $this->setError('server failed to send headers');
 
                     return false;
@@ -863,12 +886,12 @@ class soap_transport_http extends nusoap_base
 
                 $tmp = fgets($this->fp, 256);
                 $tmplen = strlen($tmp);
-                $this->debug("read line of $tmplen bytes: ".trim($tmp));
+                $this->debug("read line of $tmplen bytes: " . trim($tmp));
 
                 if ($tmplen == 0) {
                     $this->incoming_payload = $data;
-                    $this->debug('socket read of headers timed out after length '.strlen($data));
-                    $this->debug("read before timeout: ".$data);
+                    $this->debug('socket read of headers timed out after length ' . strlen($data));
+                    $this->debug("read before timeout: " . $data);
                     $this->setError('socket read of headers timed out');
 
                     return false;
@@ -892,7 +915,7 @@ class soap_transport_http extends nusoap_base
             }
             // store header data
             $this->incoming_payload .= $data;
-            $this->debug('found end of headers after length '.strlen($data));
+            $this->debug('found end of headers after length ' . strlen($data));
             // process headers
             $header_data = trim(substr($data, 0, $pos));
             $header_array = explode($lb, $header_data);
@@ -908,21 +931,23 @@ class soap_transport_http extends nusoap_base
                         $cookie = $this->parseCookie(trim($arr[1]));
                         if ($cookie) {
                             $this->incoming_cookies[] = $cookie;
-                            $this->debug('found cookie: '.$cookie['name'].' = '.$cookie['value']);
+                            $this->debug('found cookie: ' . $cookie['name'] . ' = ' . $cookie['value']);
                         } else {
-                            $this->debug('did not find cookie in '.trim($arr[1]));
+                            $this->debug('did not find cookie in ' . trim($arr[1]));
                         }
                     }
                 } else {
                     if (isset($header_name)) {
                         // append continuation line to previous header
-                        $this->incoming_headers[$header_name] .= $lb.' '.$header_line;
+                        $this->incoming_headers[$header_name] .= $lb . ' ' . $header_line;
                     }
                 }
             }
 
             // loop until msg has been received
-            if (isset($this->incoming_headers['transfer-encoding']) && strtolower($this->incoming_headers['transfer-encoding']) == 'chunked') {
+            if (isset($this->incoming_headers['transfer-encoding']) && strtolower(
+                    $this->incoming_headers['transfer-encoding']
+                ) == 'chunked') {
                 $content_length = 2147483647; // ignore any content-length header
                 $chunked = true;
                 $this->debug("want to read chunked content");
@@ -943,8 +968,8 @@ class soap_transport_http extends nusoap_base
                     $this->debug("read chunk line of $tmplen bytes");
                     if ($tmplen == 0) {
                         $this->incoming_payload = $data;
-                        $this->debug('socket read of chunk length timed out after length '.strlen($data));
-                        $this->debug("read before timeout:\n".$data);
+                        $this->debug('socket read of chunk length timed out after length ' . strlen($data));
+                        $this->debug("read before timeout:\n" . $data);
                         $this->setError('socket read of chunk length timed out');
 
                         return false;
@@ -960,8 +985,8 @@ class soap_transport_http extends nusoap_base
                     $this->debug("read buffer of $tmplen bytes");
                     if (($tmplen == 0) && (!feof($this->fp))) {
                         $this->incoming_payload = $data;
-                        $this->debug('socket read of body timed out after length '.strlen($data));
-                        $this->debug("read before timeout:\n".$data);
+                        $this->debug('socket read of body timed out after length ' . strlen($data));
+                        $this->debug("read before timeout:\n" . $data);
                         $this->setError('socket read of body timed out');
 
                         return false;
@@ -975,8 +1000,8 @@ class soap_transport_http extends nusoap_base
                     $this->debug("read chunk terminator of $tmplen bytes");
                     if ($tmplen == 0) {
                         $this->incoming_payload = $data;
-                        $this->debug('socket read of chunk terminator timed out after length '.strlen($data));
-                        $this->debug("read before timeout:\n".$data);
+                        $this->debug('socket read of chunk terminator timed out after length ' . strlen($data));
+                        $this->debug("read before timeout:\n" . $data);
                         $this->setError('socket read of chunk terminator timed out');
 
                         return false;
@@ -986,13 +1011,15 @@ class soap_transport_http extends nusoap_base
             if (feof($this->fp)) {
                 $this->debug('read to EOF');
             }
-            $this->debug('read body of length '.strlen($data));
+            $this->debug('read body of length ' . strlen($data));
             $this->incoming_payload .= $data;
-            $this->debug('received a total of '.strlen($this->incoming_payload).' bytes of data from server');
+            $this->debug('received a total of ' . strlen($this->incoming_payload) . ' bytes of data from server');
 
             // close filepointer
             if (
-                (isset($this->incoming_headers['connection']) && strtolower($this->incoming_headers['connection']) == 'close') ||
+                (isset($this->incoming_headers['connection']) && strtolower(
+                        $this->incoming_headers['connection']
+                    ) == 'close') ||
                 (!$this->persistentConnection) || feof($this->fp)
             ) {
                 fclose($this->fp);
@@ -1027,16 +1054,15 @@ class soap_transport_http extends nusoap_base
 
                 $cErr = curl_error($this->ch);
                 if ($cErr != '') {
-                    $err = 'cURL ERROR: '.curl_errno($this->ch).': '.$cErr.'<br>';
+                    $err = 'cURL ERROR: ' . curl_errno($this->ch) . ': ' . $cErr . '<br>';
                     // TODO: there is a PHP bug that can cause this to SEGV for CURLINFO_CONTENT_TYPE
                     foreach (curl_getinfo($this->ch) as $k => $v) {
-
                         if (is_string($v)) {
                             $err .= "$k: $v<br>";
                         } else {
-                            $err .= "serializing array element: ".json_encode(array("key" => $k, "value" => $v))."<br>";
+                            $err .= "serializing array element: " . json_encode(array("key" => $k, "value" => $v)
+                                ) . "<br>";
                         }
-
                     }
                     $this->debug($err);
                     $this->setError($err);
@@ -1088,7 +1114,7 @@ class soap_transport_http extends nusoap_base
                 $header_array = explode($lb, $header_data);
                 $data = ltrim(substr($data, $pos));
                 $this->debug('found proper separation of headers and document');
-                $this->debug('cleaned data, stringlen: '.strlen($data));
+                $this->debug('cleaned data, stringlen: ' . strlen($data));
                 // clean headers
                 foreach ($header_array as $header_line) {
                     $arr = explode(':', $header_line, 2);
@@ -1100,15 +1126,15 @@ class soap_transport_http extends nusoap_base
                             $cookie = $this->parseCookie(trim($arr[1]));
                             if ($cookie) {
                                 $this->incoming_cookies[] = $cookie;
-                                $this->debug('found cookie: '.$cookie['name'].' = '.$cookie['value']);
+                                $this->debug('found cookie: ' . $cookie['name'] . ' = ' . $cookie['value']);
                             } else {
-                                $this->debug('did not find cookie in '.trim($arr[1]));
+                                $this->debug('did not find cookie in ' . trim($arr[1]));
                             }
                         }
                     } else {
                         if (isset($header_name)) {
                             // append continuation line to previous header
-                            $this->incoming_headers[$header_name] .= $lb.' '.$header_line;
+                            $this->incoming_headers[$header_name] .= $lb . ' ' . $header_line;
                         }
                     }
                 }
@@ -1123,7 +1149,7 @@ class soap_transport_http extends nusoap_base
 
         // see if we need to resend the request with http digest authentication
         if (isset($this->incoming_headers['location']) && ($http_status == 301 || $http_status == 302)) {
-            $this->debug("Got $http_status $http_reason with Location: ".$this->incoming_headers['location']);
+            $this->debug("Got $http_status $http_reason with Location: " . $this->incoming_headers['location']);
             $this->setURL($this->incoming_headers['location']);
             $this->tryagain = true;
 
@@ -1132,7 +1158,7 @@ class soap_transport_http extends nusoap_base
 
         // see if we need to resend the request with http digest authentication
         if (isset($this->incoming_headers['www-authenticate']) && $http_status == 401) {
-            $this->debug("Got 401 $http_reason with WWW-Authenticate: ".$this->incoming_headers['www-authenticate']);
+            $this->debug("Got 401 $http_reason with WWW-Authenticate: " . $this->incoming_headers['www-authenticate']);
             if (strstr($this->incoming_headers['www-authenticate'], "Digest ")) {
                 $this->debug('Server wants digest authentication');
                 // remove "Digest " from our elements
@@ -1164,14 +1190,18 @@ class soap_transport_http extends nusoap_base
             ($http_status >= 400 && $http_status <= 417) ||
             ($http_status >= 501 && $http_status <= 505)
         ) {
-            $this->setError("Unsupported HTTP response status $http_status $http_reason (soapclient->response has contents of the response)");
+            $this->setError(
+                "Unsupported HTTP response status $http_status $http_reason (soapclient->response has contents of the response)"
+            );
 
             return false;
         }
 
         // decode content-encoding
         if (isset($this->incoming_headers['content-encoding']) && $this->incoming_headers['content-encoding'] != '') {
-            if (strtolower($this->incoming_headers['content-encoding']) == 'deflate' || strtolower($this->incoming_headers['content-encoding']) == 'gzip') {
+            if (strtolower($this->incoming_headers['content-encoding']) == 'deflate' || strtolower(
+                    $this->incoming_headers['content-encoding']
+                ) == 'gzip') {
                 // if decoding works, use it. else assume data wasn't gzencoded
                 if (function_exists('gzinflate')) {
                     //$timer->setMarker('starting decoding of gzip/deflated content');
@@ -1182,13 +1212,13 @@ class soap_transport_http extends nusoap_base
                     if ($this->incoming_headers['content-encoding'] == 'deflate') {
                         if ($degzdata = @gzinflate($data)) {
                             $data = $degzdata;
-                            $this->debug('The payload has been inflated to '.strlen($data).' bytes');
+                            $this->debug('The payload has been inflated to ' . strlen($data) . ' bytes');
                             if (strlen($data) < $datalen) {
                                 // test for the case that the payload has been compressed twice
                                 $this->debug('The inflated payload is smaller than the gzipped one; try again');
                                 if ($degzdata = @gzinflate($data)) {
                                     $data = $degzdata;
-                                    $this->debug('The payload has been inflated again to '.strlen($data).' bytes');
+                                    $this->debug('The payload has been inflated again to ' . strlen($data) . ' bytes');
                                 }
                             }
                         } else {
@@ -1199,13 +1229,15 @@ class soap_transport_http extends nusoap_base
                         if ($degzdata = @gzinflate(substr($data, 10))) {
                             // do our best
                             $data = $degzdata;
-                            $this->debug('The payload has been un-gzipped to '.strlen($data).' bytes');
+                            $this->debug('The payload has been un-gzipped to ' . strlen($data) . ' bytes');
                             if (strlen($data) < $datalen) {
                                 // test for the case that the payload has been compressed twice
                                 $this->debug('The un-gzipped payload is smaller than the gzipped one; try again');
                                 if ($degzdata = @gzinflate(substr($data, 10))) {
                                     $data = $degzdata;
-                                    $this->debug('The payload has been un-gzipped again to '.strlen($data).' bytes');
+                                    $this->debug(
+                                        'The payload has been un-gzipped again to ' . strlen($data) . ' bytes'
+                                    );
                                 }
                             }
                         } else {
@@ -1216,14 +1248,18 @@ class soap_transport_http extends nusoap_base
                     //$timer->setMarker('finished decoding of gzip/deflated content');
                     //print "<xmp>\nde-inflated:\n---------------\n$data\n-------------\n</xmp>";
                     // set decoded payload
-                    $this->incoming_payload = $header_data.$lb.$lb.$data;
+                    $this->incoming_payload = $header_data . $lb . $lb . $data;
                 } else {
-                    $this->debug('The server sent compressed data. Your php install must have the Zlib extension compiled in to support this.');
-                    $this->setError('The server sent compressed data. Your php install must have the Zlib extension compiled in to support this.');
+                    $this->debug(
+                        'The server sent compressed data. Your php install must have the Zlib extension compiled in to support this.'
+                    );
+                    $this->setError(
+                        'The server sent compressed data. Your php install must have the Zlib extension compiled in to support this.'
+                    );
                 }
             } else {
-                $this->debug('Unsupported Content-Encoding '.$this->incoming_headers['content-encoding']);
-                $this->setError('Unsupported Content-Encoding '.$this->incoming_headers['content-encoding']);
+                $this->debug('Unsupported Content-Encoding ' . $this->incoming_headers['content-encoding']);
+                $this->setError('Unsupported Content-Encoding ' . $this->incoming_headers['content-encoding']);
             }
         } else {
             $this->debug('No Content-Encoding header');
@@ -1247,7 +1283,7 @@ class soap_transport_http extends nusoap_base
      */
     public function setContentType($type, $charset = false)
     {
-        $this->setHeader('Content-Type', $type.($charset ? '; charset='.$charset : ''));
+        $this->setHeader('Content-Type', $type . ($charset ? '; charset=' . $charset : ''));
     }
 
     /**
@@ -1279,7 +1315,7 @@ class soap_transport_http extends nusoap_base
      */
     public function parseCookie($cookie_str)
     {
-        $cookie_str = str_replace('; ', ';', $cookie_str).';';
+        $cookie_str = str_replace('; ', ';', $cookie_str) . ';';
         $data = preg_split('/;/', $cookie_str);
         $value_str = $data[0];
 
@@ -1353,7 +1389,7 @@ class soap_transport_http extends nusoap_base
                 if (!is_array($cookie)) {
                     continue;
                 }
-                $this->debug("check cookie for validity: ".$cookie['name'].'='.$cookie['value']);
+                $this->debug("check cookie for validity: " . $cookie['name'] . '=' . $cookie['value']);
                 if ((isset($cookie['expires'])) && (!empty($cookie['expires']))) {
                     if (strtotime($cookie['expires']) <= time()) {
                         $this->debug('cookie has expired');
@@ -1378,8 +1414,8 @@ class soap_transport_http extends nusoap_base
                     $this->debug('cookie is secure, transport is not');
                     continue;
                 }
-                $cookie_str .= $cookie['name'].'='.$cookie['value'].'; ';
-                $this->debug('add cookie to Cookie-String: '.$cookie['name'].'='.$cookie['value']);
+                $cookie_str .= $cookie['name'] . '=' . $cookie['value'] . '; ';
+                $this->debug('add cookie to Cookie-String: ' . $cookie['name'] . '=' . $cookie['value']);
             }
         }
 
