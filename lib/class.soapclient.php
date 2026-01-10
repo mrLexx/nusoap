@@ -57,21 +57,9 @@ class nusoap_client extends nusoap_base
     /*
      * fault related variables
      */
-    /**
-     * @var      fault
-     */
     public $fault;
-    /**
-     * @var      faultcode
-     */
     public $faultcode;
-    /**
-     * @var      faultstring
-     */
     public $faultstring;
-    /**
-     * @var      faultdetail
-     */
     public $faultdetail;
     private string $operation;
     private $opData;
@@ -442,8 +430,6 @@ class nusoap_client extends nusoap_base
     /**
      * get available data pertaining to an operation
      *
-     * @param string $operation operation name
-     * @return array array of data pertaining to the operation
      */
     public function getOperationData($operation)
     {
@@ -551,12 +537,9 @@ class nusoap_client extends nusoap_base
 
                     return $this->parseResponse($http->incoming_headers, $this->responseData);
                 }
-                break;
             default:
                 $this->setError('no transport found, or selected transport is not yet supported!');
-
                 return false;
-                break;
         }
     }
 
@@ -794,6 +777,9 @@ class nusoap_client extends nusoap_base
         // eval the class
         eval($evalStr);
         // instantiate proxy object
+
+        $proxy = new nusoap_client('');
+
         eval("\$proxy = new nusoap_proxy_$r('');");
 
         // transfer current wsdl data to the proxy thereby avoiding parsing the wsdl twice
